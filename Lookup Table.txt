@@ -1,0 +1,35 @@
+# FORMAT: tape symbol,Minecraft block's identifier
+# Please only use valid identifiers and the exact format
+0,minecraft:black_wool
+1,minecraft:gray_wool
+2,minecraft:light_gray_wool
+3,minecraft:white_wool
+4,minecraft:brown_wool
+5,minecraft:pink_wool
+6,minecraft:magenta_wool
+7,minecraft:purple_wool
+8,minecraft:blue_wool
+9,minecraft:light_blue_wool
+10,minecraft:cyan_wool
+11,minecraft:lime_wool
+12,minecraft:green_wool
+13,minecraft:yellow_wool
+14,minecraft:orange_wool
+15,minecraft:red_wool
+a,minecraft:black_concrete_powder
+b,minecraft:gray_concrete_powder
+c,minecraft:light_gray_concrete_powder
+d,minecraft:white_concrete_powder
+e,minecraft:brown_concrete_powder
+f,minecraft:pink_concrete_powder
+g,minecraft:magenta_concrete_powder
+h,minecraft:purple_concrete_powder
+i,minecraft:blue_concrete_powder
+j,minecraft:light_blue_concrete_powder
+k,minecraft:cyan_concrete_powder
+l,minecraft:lime_concrete_powder
+m,minecraft:green_concrete_powder
+n,minecraft:yellow_concrete_powder
+o,minecraft:orange_concrete_powder
+p,minecraft:red_concrete_powder
+
