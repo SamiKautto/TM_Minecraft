@@ -122,10 +122,11 @@ If you don't know the IPv4 address, here's how to find it: In the host machine o
 Typing "/generateturing <name of the set of instructions>" without quotation marks will generate the Turing Machine in Minecraft.
 Typing "/clearturing <name of the set of instructions>" without quotation marks will clear the Turing Machine.
 
-Pressing the "Start" button will start the Turing Machine execution.
+Pressing the "Start" button will start or continue the Turing Machine execution.
 Pressing the "Pause" button will pause the execution.
 Pressing the "Reset" button will reset the tape's values into the air blocks (equivalent of empty tape cell) and set the state into the initial state.
 
 4.
 Once you've finished using the program, disconnect in the Minecraft client and type "stop" into the server console.
+
 
