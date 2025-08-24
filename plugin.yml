@@ -1,0 +1,13 @@
+name: Turing_machine
+main: me.turing.machine.turing_machine.Turing_machine
+version: 1.0
+commands:
+  generateturing:
+    description: Generate Turing Machine
+    usage: /generateturing
+  initialize:
+    description: Set up the environment for the Turing Machine
+    usage: /initialize
+  clearturing:
+    description: Clears the area of the Turing Machine
+    usage: /clearturing
