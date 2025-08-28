@@ -12,8 +12,8 @@ Files:
 - All the .java files are the source code of the project. Only relevant for programmers.
 
 
-Bugs:
-None known currently, but their existence can't be ruled out.
+Issues:
+If the user is using the software as intended, then there are none known. Though their existence can't be ruled out. There are some issues that arise from unintended use, like there being no duplicate protection when the user gives the alphabet. But as these problems arise from unintended use, solving them is a low priority.
 
 
 This project is not associated with Mojang or Microsoft. 
