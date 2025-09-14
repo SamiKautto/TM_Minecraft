@@ -1,0 +1,7 @@
+# Each row a different instruction
+# Format: CURRENT_STATE (integer), TAPE_SYMBOL (any string but comma), NEXT_STATE (integer), WRITE_SYMBOL (any string but comma), MOVE_TAPE_DIR (0 = right, 1 = left)
+blank:0
+1,0,2,0,0
+2,0,1,13,0
+
+# This machine simply fills the tape with alternating blocks.

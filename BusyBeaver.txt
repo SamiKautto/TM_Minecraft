@@ -1,0 +1,12 @@
+# Each row a different instruction
+# Format: CURRENT_STATE (integer), TAPE_SYMBOL (any string but comma), NEXT_STATE (integer), WRITE_SYMBOL (any string but comma), MOVE_TAPE_DIR (0 = right, 1 = left)
+Blank:0
+1,0,2,13,0
+1,13,3,13,1
+2,0,1,13,1
+2,13,2,13,0
+3,0,2,13,1
+3,13,-1,13,0
+
+
+# This machine is a 3-state, 2-symbol Busy Beaver (check Wikipedia or other sources for more information)

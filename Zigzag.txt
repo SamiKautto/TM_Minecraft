@@ -1,0 +1,10 @@
+# Each row a different instruction
+# Format: CURRENT_STATE (integer), TAPE_SYMBOL (any string but comma), NEXT_STATE (integer), WRITE_SYMBOL (any string but comma), MOVE_TAPE_DIR (0 = right, 1 = left)
+blank:0
+1,0,2,13,0
+1,13,1,13,1
+2,0,1,13,1
+2,13,2,13,0
+
+
+# This machine fills the tape with a single color, but going about it in the (inefficient) zigzag pattern.
