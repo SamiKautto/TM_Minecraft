@@ -4,6 +4,7 @@ Briefly, how it works is that the server plugin reads text files that contain Tu
 
 Files:
 - Lookup Table.txt contains a lookup table, used to convert the Turing machine alphabet into Minecraft blocks. The user is expected to edit this as necessary, this is here to give a baseline.
+- All other .txt files are example files of the Turing machine instructions.
 - TM_GUI-0.0.1-SNAPSHOT.jar launches the GUI which makes it more convenient to create valid Turing machine instructions. These are created as text files, which the Minecraft plugin uses for machine generation in-game.
 - Turing_machine-0.0.1-SNAPSHOT.jar is the server plugin for Minecraft Bukkit servers.
 - User Instructions v2.docx contains user instructions.
