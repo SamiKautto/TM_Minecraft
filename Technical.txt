@@ -1,0 +1,11 @@
+# Each row a different instruction
+# Format: CURRENT_STATE (integer), TAPE_SYMBOL (any string but comma), NEXT_STATE (integer), WRITE_SYMBOL (any string but comma), MOVE_TAPE_DIR (0 = right, 1 = left)
+blank:pistonOn
+1,pistonOn,2,redstone,0
+2,pistonOn,3,water,0
+3,pistonOn,4,redstone,0
+4,pistonOn,5,pistonOn,0
+5,pistonOn,6,redstone,0
+6,pistonOn,7,pistonOff,0
+7,pistonOn,8,lampOn,0
+8,pistonOn,-1,ice,1

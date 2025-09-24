@@ -32,4 +32,10 @@ m,minecraft:green_concrete_powder
 n,minecraft:yellow_concrete_powder
 o,minecraft:orange_concrete_powder
 p,minecraft:red_concrete_powder
+pistonOn,minecraft:piston[extended=true,facing=south]
+pistonOff,minecraft:piston
+lampOn,minecraft:redstone_lamp[lit=true]
+redstone,minecraft:redstone_block
+ice,minecraft:ice
+water,minecraft:water
 

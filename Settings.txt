@@ -1,0 +1,8 @@
+# How many blocks can be moved, meaning the affected range being [-1/2 * value, 1/2 * value].
+# Without mods affecting the world border, the maximum value is about 60 000 000.
+# Keep in mind the larger the value, longer the time to set up the force loads, and the slower
+# the Turing machine's execution will be. Remember to run /initialize every time you want
+# to change this value.
+
+move limit:5000
+
