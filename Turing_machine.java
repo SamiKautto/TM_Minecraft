@@ -25,11 +25,11 @@ import org.bukkit.entity.Player;
 
 
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings("deprecation") // Suppress, because some necessary and no replacement nor problems found thus far
 public final class Turing_machine extends JavaPlugin{
 	ArrayList<Tuple<Integer,String,Integer,String,Integer>> masterInstructions = null;
 	Map<String, String> masterLookupTable = null;
-	int moveLimit = 1000; // How many blocks are moved in a single tape move command? (For each direction, so the real number is double this)
+	Map<String, Integer> settings = null;
 
     @Override
     public void onEnable() {
@@ -70,10 +70,12 @@ public final class Turing_machine extends JavaPlugin{
     }
     
     private String moveTape(int i, int tapeX, int tapeZ) {
+    	int moveLimit = settings.get("move limit") / 2; // Divided, because commands affecting the tape goes in both directions by half the limit
+    	
     	if (i == 0) {
-    		return "clone " + (tapeX - moveLimit) + " -60 " + tapeZ + " " + (tapeX + moveLimit) + " -60 " + tapeZ + " " + (tapeX - moveLimit + 1) + " -60 " + tapeZ + " replace move";
+    		return "clone " + (tapeX - moveLimit) + " -60 " + tapeZ + " " + (tapeX + moveLimit) + " -60 " + tapeZ + " " + (tapeX - moveLimit + 1) + " -60 " + tapeZ + " strict replace move";
     	} else if (i == 1) {
-    		return "clone " + (tapeX - moveLimit) + " -60 " + tapeZ + " " + (tapeX + moveLimit) + " -60 " + tapeZ + " " + (tapeX - moveLimit - 1) + " -60 " + tapeZ + " replace move";
+    		return "clone " + (tapeX - moveLimit) + " -60 " + tapeZ + " " + (tapeX + moveLimit) + " -60 " + tapeZ + " " + (tapeX - moveLimit - 1) + " -60 " + tapeZ + " strict replace move";
     	}
     	
     	return "";
@@ -189,7 +191,7 @@ public final class Turing_machine extends JavaPlugin{
     	placeBlock(world, startingX +1, -60, startingZ +3, Material.REPEATER, BlockFace.WEST);
     	placeBlock(world, startingX,    -60, startingZ +4, Material.REPEATER, BlockFace.NORTH);
     	placeBlock(world, startingX,    -60, startingZ +3, Material.REDSTONE_WIRE);
-    	placeBlock(world, startingX,    -60, startingZ +2, Material.COMMAND_BLOCK, BlockFace.UP, "execute if block " + tapeX + " -60 " + tapeZ + " minecraft:air run setblock " + tapeX + " -60 " + tapeZ + " " + lookupTable.get(blank) + " replace");
+    	placeBlock(world, startingX,    -60, startingZ +2, Material.COMMAND_BLOCK, BlockFace.UP, "execute if block " + tapeX + " -60 " + tapeZ + " minecraft:air run setblock " + tapeX + " -60 " + tapeZ + " " + lookupTable.get(blank) + " strict");
     	placeBlock(world, startingX +2, -60, startingZ +3, Material.COMMAND_BLOCK, BlockFace.UP, "setblock " + startingX + " -60 " + startingZ + " minecraft:air replace");
     	placeBlock(world, startingX -1, -60, startingZ +2, Material.BIRCH_SIGN, BlockFace.WEST, "                 Tape extender");
     	
@@ -240,7 +242,7 @@ public final class Turing_machine extends JavaPlugin{
     	placeBlock(world, startingX + instructionsLength + offset -1, -59, startingZ +9, Material.REPEATER, BlockFace.NORTH);
     	placeBlock(world, startingX + instructionsLength + offset -1, -60, startingZ +10, Material.COMMAND_BLOCK, BlockFace.SOUTH, "fill ~ -59 ~-2 " + (startingX) + " -59 ~-2 minecraft:air replace minecraft:redstone_wire");
     	placeBlock(world, startingX + instructionsLength + offset -1, -59, startingZ +10, Material.REDSTONE_WIRE);
-    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + instructionsLength + offset -1) + " -60 " + (startingZ +11) + " chain_command_block[facing=south]{Command:\"/setblock ~ -59 ~2 minecraft:redstone_block replace\",auto:1b} replace");
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + instructionsLength + offset -1) + " -60 " + (startingZ +11) + " chain_command_block[facing=south]{Command:\"/setblock ~ -59 " + (startingZ +13) + " minecraft:redstone_block replace\",auto:1b} replace");
     	
     	placeBlock(world, startingX-1, -60, startingZ +5, Material.BIRCH_SIGN, BlockFace.WEST, "                   Semaphores");
     	placeBlock(world, startingX-1, -60, startingZ +6, Material.BIRCH_SIGN, BlockFace.WEST, "                   Continue");
@@ -260,11 +262,10 @@ public final class Turing_machine extends JavaPlugin{
 		if (instructions.size()%15 == 0) {
 			offset--;
 		}
+		int startingOffset = offset;
 		
 		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "forceload add " + (startingX + instructions.size() + offset + 1) + " " + (startingZ +14));
-		placeBlock(world, startingX + instructions.size() + offset + 1, -60, startingZ +14, Material.COMMAND_BLOCK, BlockFace.UP, "setblock ~-1 ~1 ~-1 minecraft:air replace");
-		placeBlock(world, startingX + instructions.size() + offset + 1, -59, startingZ +14, Material.REDSTONE_WIRE);
-		
+
 		// Order is reversed to make sure the flag setter and the corresponding execution have
 		// the same x-coordinate, just for convenience of debugging and testing
 		for (int i = instructions.size(); i > 0; i--) {
@@ -275,26 +276,27 @@ public final class Turing_machine extends JavaPlugin{
      			placeBlock(world, startingX + i + offset, -59, startingZ +14, Material.REPEATER, BlockFace.EAST);
      			offset--;
     		}
-    		 
      		
      		String s = "s" + instructions.get(i-1).a + "i" + instructions.get(i-1).b;
      		placeBlock(world, startingX + i + offset, -60, startingZ +14, Material.COMMAND_BLOCK, BlockFace.SOUTH, "execute if score @e[tag=scoreHolder,limit=1] " + s + " matches 1 run scoreboard players set @e[tag=scoreHolder,limit=1] " + s + " 0");
      		placeBlock(world, startingX + i + offset, -59, startingZ +14, Material.REDSTONE_WIRE);
      		
      		//forced to use a console commands to generate the green command blocks, due to some import incompatibility in trying to both give the command block a command, and trying to turn on the 'conditional' setting.
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +15) + " chain_command_block[conditional=true, facing=south]{Command:\"/setblock " + tapeX + " -60 " + tapeZ + " minecraft:air replace\",auto:1b} replace");
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +16) + " chain_command_block[conditional=true, facing=south]{Command:\"/setblock " + tapeX + " -60 " + tapeZ + " " + lookupTable.get(instructions.get(i-1).d) + " replace\",auto:1b} replace");
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +17) + " chain_command_block[conditional=true, facing=south]{Command:\"/scoreboard players set @e[tag=scoreHolder,limit=1] state " + instructions.get(i-1).c + "\",auto:1b} replace");
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +18) + " chain_command_block[conditional=true, facing=south]{Command:\"/" + moveTape(instructions.get(i-1).e) + "\",auto:1b} replace");
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +19) + " chain_command_block[conditional=true, facing=south]{Command:\"/execute unless score @e[tag=scoreHolder,limit=1] state matches -1 run setblock " + (startingX) + " -60 " + (startingZ) + " minecraft:redstone_block replace\",auto:1b} replace");
+     		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +15) + " chain_command_block[conditional=true, facing=south]{Command:\"/setblock " + (startingX + instructions.size() + startingOffset) + " -59 " + (startingZ +13) + " minecraft:air replace\",auto:1b} replace");
+     		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +16) + " chain_command_block[conditional=true, facing=south]{Command:\"/setblock " + tapeX + " -60 " + tapeZ + " minecraft:air strict\",auto:1b} replace");
+    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +17) + " chain_command_block[conditional=true, facing=south]{Command:\"/setblock " + tapeX + " -60 " + tapeZ + " " + lookupTable.get(instructions.get(i-1).d) + " strict\",auto:1b} replace");
+    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +18) + " chain_command_block[conditional=true, facing=south]{Command:\"/scoreboard players set @e[tag=scoreHolder,limit=1] state " + instructions.get(i-1).c + "\",auto:1b} replace");
+    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +19) + " chain_command_block[conditional=true, facing=south]{Command:\"/" + moveTape(instructions.get(i-1).e) + "\",auto:1b} replace");
+    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "setblock " + (startingX + i + offset) + " -60 " + (startingZ +20) + " chain_command_block[conditional=true, facing=south]{Command:\"/execute unless score @e[tag=scoreHolder,limit=1] state matches -1 run setblock " + (startingX) + " -60 " + (startingZ) + " minecraft:redstone_block replace\",auto:1b} replace");
     	 }
 		
     	placeBlock(world, startingX-1, -60, startingZ +14, Material.BIRCH_SIGN, BlockFace.WEST, "                    Reset       Semaphores");
-    	placeBlock(world, startingX-1, -60, startingZ +15, Material.BIRCH_SIGN, BlockFace.WEST, "                 Clear Writing   Position");
-    	placeBlock(world, startingX-1, -60, startingZ +16, Material.BIRCH_SIGN, BlockFace.WEST, "                 Write");
-    	placeBlock(world, startingX-1, -60, startingZ +17, Material.BIRCH_SIGN, BlockFace.WEST, "                  Set Next     State");
-    	placeBlock(world, startingX-1, -60, startingZ +18, Material.BIRCH_SIGN, BlockFace.WEST, "                 Move Tape");
-    	placeBlock(world, startingX-1, -60, startingZ +19, Material.BIRCH_SIGN, BlockFace.WEST, "                   Continue     Cycle?");
+		placeBlock(world, startingX-1, -60, startingZ +15, Material.BIRCH_SIGN, BlockFace.WEST, "                 Remove       Redstone block");
+    	placeBlock(world, startingX-1, -60, startingZ +16, Material.BIRCH_SIGN, BlockFace.WEST, "                 Clear Writing   Position");
+    	placeBlock(world, startingX-1, -60, startingZ +17, Material.BIRCH_SIGN, BlockFace.WEST, "                 Write");
+    	placeBlock(world, startingX-1, -60, startingZ +18, Material.BIRCH_SIGN, BlockFace.WEST, "                  Set Next     State");
+    	placeBlock(world, startingX-1, -60, startingZ +19, Material.BIRCH_SIGN, BlockFace.WEST, "                 Move Tape");
+    	placeBlock(world, startingX-1, -60, startingZ +20, Material.BIRCH_SIGN, BlockFace.WEST, "                   Continue     Cycle?");
     	 
     }
     
@@ -309,6 +311,8 @@ public final class Turing_machine extends JavaPlugin{
     private void generateControls(World world, int startingX, int startingZ, int tapeX, int tapeZ) {
     	message(world, "Generating user controls");
     	
+    	int moveLimit = settings.get("move limit") / 2; // Divided, because commands affecting the tape goes in both directions by half the limit
+    	
     	// First, mark the reading head
     	for (int z = tapeZ -5; z <= tapeZ +5; z++) {
      		placeBlock(world, tapeX, -61, z, Material.RED_CONCRETE);
@@ -322,13 +326,15 @@ public final class Turing_machine extends JavaPlugin{
     	// Start button
     	placeBlock(world, 0, -60, -2, Material.IRON_BLOCK);
     	placeButton(world, 0, -59, -2, Material.DARK_OAK_BUTTON, BlockFace.SOUTH, Face.FLOOR); // Ignore
-    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:armor_stand 0 -59 -3 {Invisible:true,Invulnerable:true,NoBasePlate:true,NoGravity:true,CustomNameVisible:true, CustomName:\"Press the button to start / continue execution\"}");
     	placeBlock(world, 0, -62, -2, Material.COMMAND_BLOCK, BlockFace.UP, "setblock " + startingX + " -60 " + (startingZ + 1) + " minecraft:repeater[facing=north] replace");
     	placeBlock(world, 0, -61, -2, Material.REDSTONE_WIRE);
     	placeBlock(world, 0, -62, -3, Material.COMMAND_BLOCK, BlockFace.UP, "setblock " + startingX + " -60 " + startingZ + " minecraft:air replace");
     	placeBlock(world, 0, -61, -3, Material.REDSTONE_WIRE);
     	placeBlock(world, 0, -62, -4, Material.COMMAND_BLOCK, BlockFace.UP, "setblock " + startingX + " -60 " + startingZ + " minecraft:redstone_block replace");
     	placeBlock(world, 0, -61, -4, Material.REDSTONE_WIRE);
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -0 -57 -3 {transformation:{left_rotation:[0f,0f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Start or continue execution\"}}");
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -0 -57 -3 {transformation:{left_rotation:[0f,180f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Start or continue execution\"}}");
+   
     	
     	// Reset button
     	placeBlock(world, -8, -60, 1, Material.IRON_BLOCK);
@@ -337,15 +343,18 @@ public final class Turing_machine extends JavaPlugin{
     	placeBlock(world, -8, -61, 1, Material.REDSTONE_WIRE);
     	placeBlock(world, -9, -62, 1, Material.COMMAND_BLOCK, BlockFace.UP, "fill " + (tapeX - moveLimit) + " -60 " + tapeZ + " " + (tapeX + moveLimit) + " -60 " + tapeZ + " minecraft:air");
     	placeBlock(world, -9, -61, 1, Material.REDSTONE_WIRE);
-    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:armor_stand -9 -59 1 {Invisible:true,Invulnerable:true,NoBasePlate:true,NoGravity:true,CustomNameVisible:true, CustomName:\"Reset\"}");
-    	
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -9 -57 1 {transformation:{left_rotation:[0f,1f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Reset\"}}");
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -9 -57 1 {transformation:{left_rotation:[0f,-1f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Reset\"}}");
+   
     	// Pause button
     	placeBlock(world, -8, -60, 3, Material.IRON_BLOCK);
     	placeButton(world, -8,-59, 3, Material.DARK_OAK_BUTTON, BlockFace.SOUTH, Face.FLOOR); //Ignore
     	placeBlock(world, -8, -62, 3, Material.COMMAND_BLOCK, BlockFace.UP, "setblock " + startingX + " -60 " + (startingZ + 1) + " minecraft:air replace");
     	placeBlock(world, -8, -61, 3, Material.REDSTONE_WIRE);
-    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:armor_stand -9 -59 3 {Invisible:true,Invulnerable:true,NoBasePlate:true,NoGravity:true,CustomNameVisible:true, CustomName:\"Pause\"}");
-
+    	placeBlock(world, -9, -61, 3, Material.AIR);
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -9 -57 3 {transformation:{left_rotation:[0f,1f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Pause\"}}");
+    	Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:text_display -9 -57 3 {transformation:{left_rotation:[0f,-1f,0f,1f], right_rotation:[0f,0f,0f,1f], translation:[0f,0f,0f], scale:[1f,1f,1f]},text:{bold:true, text:\"Pause\"}}");
+    	
     }
     
     //-----------------------------
@@ -357,10 +366,14 @@ public final class Turing_machine extends JavaPlugin{
     	if (cmd.getName().equalsIgnoreCase("initialize")) {
     		World world = Bukkit.getWorld("world");
     		
+    		settings = SettingsReader.read(".\\plugins\\Settings.txt");
+    		
+    		int moveLimit = settings.get("move limit");
+    		
     		message(world, "Clearing the work area, please wait...");
     		
     		// First, increase the limit for how many blocks can be manipulated with commands, default (32768) is inconveniently small for this kind of project
-    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "gamerule commandModificationBlockLimit " + max(moveLimit *2, 100000000));
+    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "gamerule commandModificationBlockLimit " + max(moveLimit, 100000000));
     		
     		// Clear Work Area
     		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "forceload add -50 -50 50 50");
@@ -378,7 +391,7 @@ public final class Turing_machine extends JavaPlugin{
     		}  		
     		
     		// Force load more area for the tape
-    		for (int i = 0; i <= moveLimit + 16; i = i +16) {
+    		for (int i = 0; i <= (moveLimit / 2) + 16; i = i +16) {
     			Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "forceload add " + i + " -15");
         		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "forceload add -" + i + " -15");
     		}  
@@ -399,6 +412,8 @@ public final class Turing_machine extends JavaPlugin{
     		if (cmd.getName().equalsIgnoreCase("clearturing")) {
     	
 	    		World world = Bukkit.getWorld("world");
+	    		
+	    		int moveLimit = settings.get("move limit") / 2; // Divided, because commands affecting the tape goes in both directions by half the limit
 	    		
 	    		// Fill in instructions
 	    		if (args != null && args.length > 0) { // Will be done every time when argument is given
@@ -439,8 +454,9 @@ public final class Turing_machine extends JavaPlugin{
 	    		
 	    		// Clears the environment of items, armor stands and other entities, except for players
 	    		Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),"kill @e[type=!player]");
+	    		// This command resets the rule randomTickSpeed to default value
+	            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),"gamerule randomTickSpeed 3");
 	    		deleteScoreboards(masterInstructions);
-	    		//deleteScoreboards(testInstructions.instructions(2));
 	    		message(world, "Finished clearing the Turing Machine");
 	    		
 	    		return true;
@@ -467,10 +483,13 @@ public final class Turing_machine extends JavaPlugin{
 	    		if (masterInstructions != null && masterLookupTable != null) {
 		            message(world, "Generating the Turing machine, please wait...");
 		            
+		            // This command prevents certain random block events from occurring, preventing corruption of data with some blocks
+		            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),"gamerule randomTickSpeed 0");
+		            
 		            // This armorstand holds the scoreboards, so that they don't need to be
 		            // assigned to the user, and thus require the user to enter their username
 		            // -> user agnostic machine
-		            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:armor_stand 0 7 0 {Invisible:true,NoBasePlate:true,NoGravity:true,Tags:[\"scoreHolder\"],CustomName:\"Score Holder\"}");
+		            Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), "summon minecraft:armor_stand 0 7 0 {Invisible:true,NoGravity:true,Tags:[\"scoreHolder\"],CustomName:\"Score Holder\"}");
 		            
 		            generateLooper(world, masterLookupTable, masterInstructions, blank);
 		            generateSemaphores(world, masterInstructions, masterLookupTable);
